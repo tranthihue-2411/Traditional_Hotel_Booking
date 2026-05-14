@@ -11,30 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reviews', function (Blueprint $table) {
+        Schema::create('hotel_amenities', function (Blueprint $table) {
 
             $table->id();
-
-            $table->foreignId('user_id')
-                ->constrained()
-                ->onDelete('cascade');
 
             $table->foreignId('hotel_id')
                 ->constrained()
                 ->onDelete('cascade');
 
-            $table->foreignId('booking_id')
-                ->nullable()
+            $table->foreignId('amenity_id')
                 ->constrained()
                 ->onDelete('cascade');
-
-            $table->tinyInteger('rating');
-
-            $table->text('comment')->nullable();
-
-            $table->boolean('is_verified')->default(false);
-
-            $table->boolean('is_published')->default(true);
 
             $table->timestamps();
         });
@@ -45,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reviews');
+        Schema::dropIfExists('hotel_amenities');
     }
 };
