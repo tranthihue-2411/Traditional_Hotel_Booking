@@ -54,15 +54,19 @@ class HotelController extends Controller
         }
 
         $sortBy = $request->get('sort', 'rating-desc');
-        match ($sortBy) {
-            'price-asc'  => $query->orderBy(
-                                Room::select('price_per_night')
-                                    ->whereColumn('hotel_id', 'hotels.id')
-                                    ->orderBy('price_per_night')->limit(1),
-                                'asc'),
-            'price-desc' => $query->orderBy('rating', 'desc'),
-            default      => $query->orderBy('rating', 'desc'),
-        };
+
+        switch ($sortBy) {
+            case 'price-asc':
+                $query->orderByRaw('(SELECT MIN(price_per_night) FROM rooms WHERE rooms.hotel_id = hotels.id AND rooms.is_active = 1) ASC');
+                break;
+            case 'price-desc':
+                $query->orderByRaw('(SELECT MIN(price_per_night) FROM rooms WHERE rooms.hotel_id = hotels.id AND rooms.is_active = 1) DESC');
+                break;
+            case 'rating-desc':
+            default:
+                $query->orderBy('hotels.rating', 'desc');
+                break;
+        }
 
         $hotels    = $query->paginate(12);
         $amenities = Amenity::all();

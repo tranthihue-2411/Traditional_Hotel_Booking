@@ -11,7 +11,19 @@ class RoomSeeder extends Seeder
     {
         $hotels = Hotel::all();
 
-        foreach ($hotels as $hotel) {
+        $roomConfigs = [
+            // [standard_price, deluxe_price, suite_price]
+            [500000,  900000,  2000000],
+            [650000,  1200000, 2800000],
+            [400000,  750000,  1500000],
+            [700000,  1400000, 3500000],
+            [550000,  1000000, 2200000],
+            [900000,  1800000, 4500000],
+        ];
+
+        foreach ($hotels as $index => $hotel) {
+            $prices = $roomConfigs[$index % count($roomConfigs)];
+
             Room::create([
                 'hotel_id'        => $hotel->id,
                 'name'            => 'Phòng Standard',
@@ -20,7 +32,7 @@ class RoomSeeder extends Seeder
                 'max_guests'      => 2,
                 'size_sqm'        => 25.00,
                 'bed_type'        => 'Giường đơn',
-                'price_per_night' => 600000,
+                'price_per_night' => $prices[0],
                 'total_rooms'     => 10,
                 'is_active'       => true,
             ]);
@@ -33,7 +45,7 @@ class RoomSeeder extends Seeder
                 'max_guests'      => 3,
                 'size_sqm'        => 40.00,
                 'bed_type'        => 'Giường đôi',
-                'price_per_night' => 1200000,
+                'price_per_night' => $prices[1],
                 'total_rooms'     => 5,
                 'is_active'       => true,
             ]);
@@ -46,7 +58,7 @@ class RoomSeeder extends Seeder
                 'max_guests'      => 4,
                 'size_sqm'        => 80.00,
                 'bed_type'        => 'Giường King',
-                'price_per_night' => 2500000,
+                'price_per_night' => $prices[2],
                 'total_rooms'     => 2,
                 'is_active'       => true,
             ]);

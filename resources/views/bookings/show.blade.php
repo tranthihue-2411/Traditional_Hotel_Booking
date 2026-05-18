@@ -135,6 +135,13 @@
                    class="flex-1 bg-teal-600 text-white py-3 rounded-lg text-center hover:bg-teal-700 font-semibold">
                     Xem Tất Cả Đặt Phòng
                 </a>
+                {{-- THÊM NÚT NÀY --}}
+                @if($booking->status === 'pending')
+                    <a href="{{ route('payment.show', $booking) }}"
+                    class="flex-1 bg-yellow-500 text-white py-3 rounded-lg text-center hover:bg-yellow-600 font-semibold">
+                        💳 Tiếp tục thanh toán
+                    </a>
+                @endif
                 <a href="{{ route('hotels.show', $booking->hotel) }}"
                    class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg text-center hover:bg-gray-300 font-semibold">
                     Xem Khách Sạn
@@ -149,6 +156,61 @@
                 </form>
                 @endif
             </div>
+            {{-- ĐÁNH GIÁ --}}
+            @php
+                $userReview = \App\Models\Review::where('user_id', auth()->id())
+                    ->where('hotel_id', $booking->hotel_id)->first();
+            @endphp
+
+            @if($booking->status === 'completed' && !$userReview)
+            <div class="bg-white rounded-lg shadow p-6 mt-6">
+                <h3 class="text-xl font-semibold mb-4">⭐ Đánh giá chuyến đi</h3>
+                <form action="{{ route('reviews.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="hotel_id" value="{{ $booking->hotel_id }}">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Điểm đánh giá</label>
+                        <select name="rating" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            @foreach([5,4,3,2,1] as $star)
+                            <option value="{{ $star }}">{{ $star }} sao {{ str_repeat('⭐', $star) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nhận xét</label>
+                        <textarea name="comment" rows="4"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                            placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                    </div>
+                    <button type="submit" class="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 font-semibold">
+                        Gửi đánh giá
+                    </button>
+                </form>
+            </div>
+
+            @elseif($booking->status === 'completed' && $userReview)
+            <div class="bg-green-50 border border-green-200 rounded-lg p-5 mt-6">
+                <p class="text-green-700 font-semibold">✅ Bạn đã đánh giá chuyến đi này!</p>
+                <div class="flex gap-0.5 mt-2">
+                    @for($i = 1; $i <= 5; $i++)
+                    <span class="{{ $i <= $userReview->rating ? 'text-yellow-400' : 'text-gray-200' }}">⭐</span>
+                    @endfor
+                </div>
+                @if($userReview->comment)
+                <p class="text-gray-600 text-sm mt-2">{{ $userReview->comment }}</p>
+                @endif
+            </div>
+
+            @elseif($booking->status === 'cancelled')
+            <div class="bg-red-50 border border-red-200 rounded-lg p-5 mt-6">
+                <p class="text-red-600 font-semibold">❌ Đặt phòng đã bị hủy — không thể đánh giá.</p>
+            </div>
+
+            @else
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 mt-6">
+                <p class="text-gray-500 text-sm">💡 Bạn có thể đánh giá sau khi hoàn thành chuyến đi.</p>
+            </div>
+            @endif
         </div>
     </div>
 

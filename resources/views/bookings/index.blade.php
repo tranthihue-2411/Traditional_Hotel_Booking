@@ -61,6 +61,13 @@
                        class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
                         Xem chi tiết
                     </a>
+                    {{-- THÊM NÚT NÀY --}}
+                    @if($booking->status === 'pending')
+                        <a href="{{ route('payment.show', $booking) }}"
+                        class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-semibold">
+                            💳 Tiếp tục thanh toán
+                        </a>
+                    @endif
                     @if($booking->status == 'confirmed' || $booking->status == 'pending')
                     <form action="{{ route('bookings.cancel', $booking) }}" method="POST"
                           onsubmit="return confirm('Bạn có chắc muốn hủy đặt phòng này?');">
