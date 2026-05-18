@@ -56,11 +56,11 @@ class BookingController extends Controller
             'guest_email'          => $validated['guest_email'],
             'guest_phone'          => $validated['guest_phone'] ?? null,
             'special_requests'     => $validated['special_requests'] ?? null,
-            'status'               => 'confirmed',
+            'status'               => 'pending',
         ]);
 
-        return redirect()->route('bookings.show', $booking)
-            ->with('success', 'Đặt phòng thành công!');
+        return redirect()->route('payment.show', $booking)
+            ->with('info', 'Vui lòng hoàn tất thanh toán để xác nhận đặt phòng.');
     }
 
     public function show(Booking $booking)
