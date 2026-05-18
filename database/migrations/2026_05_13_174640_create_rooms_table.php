@@ -12,34 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rooms', function (Blueprint $table) {
-
             $table->id();
-
-            $table->foreignId('hotel_id')
-                ->constrained()
-                ->onDelete('cascade');
-
+            $table->foreignId('hotel_id')->constrained('hotels')->cascadeOnDelete();
             $table->string('name');
-
             $table->text('description')->nullable();
-
-            $table->string('room_type')->nullable();
-
-            $table->integer('max_guests');
-
+            $table->enum('room_type', ['Single', 'Double', 'Suite', 'Villa']);
+            $table->unsignedInteger('max_guests');
             $table->decimal('size_sqm', 8, 2)->nullable();
-
-            $table->string('bed_type')->nullable();
-
+            $table->string('bed_type', 100)->nullable();
             $table->decimal('price_per_night', 10, 2);
-
-            $table->integer('total_rooms')->default(1);
-
+            $table->unsignedInteger('total_rooms');
+            $table->json('amenities')->nullable();
             $table->string('image')->nullable();
-
             $table->boolean('is_active')->default(true);
-
             $table->timestamps();
+            $table->index('hotel_id');
+            $table->index('price_per_night');
+            $table->index('is_active');
         });
     }
 

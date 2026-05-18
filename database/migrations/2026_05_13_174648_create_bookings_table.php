@@ -12,56 +12,32 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bookings', function (Blueprint $table) {
-
             $table->id();
-
-            $table->string('booking_reference')->unique();
-
-            $table->foreignId('user_id')
-                ->constrained()
-                ->onDelete('cascade');
-
-            $table->foreignId('hotel_id')
-                ->constrained()
-                ->onDelete('cascade');
-
-            $table->foreignId('room_id')
-                ->constrained()
-                ->onDelete('cascade');
-
+            $table->string('booking_reference', 20)->unique();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('hotel_id')->constrained('hotels')->cascadeOnDelete();
+            $table->foreignId('room_id')->constrained('rooms')->cascadeOnDelete();
             $table->date('check_in_date');
-
             $table->date('check_out_date');
-
-            $table->integer('number_of_guests');
-
-            $table->integer('number_of_nights');
-
+            $table->unsignedInteger('number_of_guests');
+            $table->unsignedInteger('number_of_nights');
             $table->decimal('room_price_per_night', 10, 2);
-
             $table->decimal('subtotal', 10, 2);
-
+            $table->decimal('taxes', 10, 2)->default(0);
             $table->decimal('service_fee', 10, 2)->default(0);
-
             $table->decimal('discount', 10, 2)->default(0);
-
             $table->decimal('total_amount', 10, 2);
-
             $table->string('guest_name');
-
             $table->string('guest_email');
-
-            $table->string('guest_phone');
-
+            $table->string('guest_phone', 20)->nullable();
             $table->text('special_requests')->nullable();
-
-            $table->string('status')->default('pending');
-
+            $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
             $table->timestamp('cancelled_at')->nullable();
-
             $table->text('cancellation_reason')->nullable();
-
             $table->timestamps();
+            $table->index('user_id');
+            $table->index('hotel_id');
+            $table->index('status');
         });
     }
 

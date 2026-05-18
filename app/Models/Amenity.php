@@ -1,22 +1,15 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Amenity extends Model
 {
-    use HasFactory;
+    protected $fillable = ['name', 'icon', 'category'];
 
-    protected $fillable = [
-        'name',
-        'icon',
-        'category'
-    ];
-
-    public function hotelAmenities()
+    public function hotels(): BelongsToMany
     {
-        return $this->hasMany(HotelAmenity::class);
+        return $this->belongsToMany(Hotel::class, 'hotel_amenities');
     }
 }

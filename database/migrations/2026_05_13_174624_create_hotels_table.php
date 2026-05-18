@@ -12,45 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('hotels', function (Blueprint $table) {
-
             $table->id();
-
-            $table->foreignId('user_id')
-                ->nullable()
-                ->constrained()
-                ->onDelete('cascade');
-
             $table->string('name');
-
             $table->text('description')->nullable();
-
             $table->string('address');
-
-            $table->string('city');
-
-            $table->string('province')->nullable();
-
-            $table->string('country')->default('Vietnam');
-
-            $table->string('phone')->nullable();
-
+            $table->string('city', 100);
+            $table->string('province', 100);
+            $table->string('country', 100)->default('Vietnam');
+            $table->string('phone', 20)->nullable();
             $table->string('email')->nullable();
-
             $table->string('website')->nullable();
-
             $table->decimal('latitude', 10, 8)->nullable();
-
             $table->decimal('longitude', 11, 8)->nullable();
-
             $table->decimal('rating', 3, 2)->default(0);
-
-            $table->integer('review_count')->default(0);
-
+            $table->unsignedInteger('review_count')->default(0);
             $table->string('main_image')->nullable();
-
+            $table->json('images')->nullable();
             $table->boolean('is_active')->default(true);
-
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->index('city');
+            $table->index('is_active');
+            $table->index('rating');
         });
     }
 
