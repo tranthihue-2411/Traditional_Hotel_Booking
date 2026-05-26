@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\HotelController as AdminHotelController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\RoomController;
 
 // Public routes
 Route::get('/', [HotelController::class, 'index'])->name('home');
@@ -31,6 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/bookings/{booking}/pending', [BookingController::class, 'pending'])->name('bookings.pending');
     Route::get('/payment/{booking}', [PaymentController::class, 'show'])->name('payment.show');
     Route::post('/payment/{booking}/process', [PaymentController::class, 'process'])->name('payment.process');
     });
@@ -50,4 +53,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
     Route::patch('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     Route::patch('/users/{user}/toggle-lock', [AdminUserController::class, 'toggleLock'])->name('users.toggle-lock');
+    Route::get('/hotels/{hotel}/rooms/create', [RoomController::class, 'create'])->name('rooms.create');
+    Route::post('/hotels/{hotel}/rooms', [RoomController::class, 'store'])->name('rooms.store');
+    Route::get('/hotels/{hotel}/rooms/{room}/edit', [RoomController::class, 'edit'])->name('rooms.edit');
+    Route::patch('/hotels/{hotel}/rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
+    Route::delete('/hotels/{hotel}/rooms/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
 });

@@ -19,17 +19,15 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {{-- Form thanh toán --}}
         <div class="lg:col-span-2">
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="text-xl font-semibold mb-6">Chọn phương thức thanh toán</h2>
 
-                <form action="{{ route('payment.process', $booking) }}" method="POST" id="paymentForm">
+                <form action="{{ route('payment.process', $booking) }}" method="POST">
                     @csrf
 
-                    {{-- Chọn phương thức --}}
                     <div class="space-y-3 mb-6">
-                        <label class="flex items-center gap-3 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-teal-500 transition" id="label-credit_card">
+                        <label class="flex items-center gap-3 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-teal-500 transition">
                             <input type="radio" name="payment_method" value="credit_card"
                                    class="text-teal-600" checked onchange="showPaymentForm(this.value)">
                             <div class="flex items-center gap-3">
@@ -41,7 +39,7 @@
                             </div>
                         </label>
 
-                        <label class="flex items-center gap-3 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-teal-500 transition" id="label-bank_transfer">
+                        <label class="flex items-center gap-3 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-teal-500 transition">
                             <input type="radio" name="payment_method" value="bank_transfer"
                                    class="text-teal-600" onchange="showPaymentForm(this.value)">
                             <div class="flex items-center gap-3">
@@ -53,7 +51,7 @@
                             </div>
                         </label>
 
-                        <label class="flex items-center gap-3 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-teal-500 transition" id="label-cash">
+                        <label class="flex items-center gap-3 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-teal-500 transition">
                             <input type="radio" name="payment_method" value="cash"
                                    class="text-teal-600" onchange="showPaymentForm(this.value)">
                             <div class="flex items-center gap-3">
@@ -66,22 +64,19 @@
                         </label>
                     </div>
 
-                    {{-- Form thẻ tín dụng --}}
                     <div id="credit_card_form" class="border border-gray-200 rounded-lg p-5 mb-6">
                         <h3 class="font-semibold mb-4 text-gray-700">Thông tin thẻ</h3>
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Tên chủ thẻ</label>
-                                <input type="text" name="card_name"
-                                       value="{{ auth()->user()->name }}"
+                                <input type="text" name="card_name" value="{{ auth()->user()->name }}"
                                        placeholder="NGUYEN VAN A"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 uppercase">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Số thẻ</label>
                                 <input type="text" name="card_number"
-                                       placeholder="1234 5678 9012 3456"
-                                       maxlength="19"
+                                       placeholder="1234 5678 9012 3456" maxlength="19"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono"
                                        oninput="formatCardNumber(this)">
                             </div>
@@ -104,7 +99,6 @@
                         <p class="text-xs text-gray-400 mt-3">🔒 Thông tin thẻ được bảo mật theo tiêu chuẩn PCI DSS</p>
                     </div>
 
-                    {{-- Thông tin chuyển khoản --}}
                     <div id="bank_transfer_form" class="border border-gray-200 rounded-lg p-5 mb-6 hidden">
                         <h3 class="font-semibold mb-4 text-gray-700">Thông tin chuyển khoản</h3>
                         <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
@@ -132,7 +126,6 @@
                         <p class="text-xs text-gray-500 mt-3">⚠️ Vui lòng chuyển khoản đúng nội dung để hệ thống tự động xác nhận.</p>
                     </div>
 
-                    {{-- Thanh toán tại khách sạn --}}
                     <div id="cash_form" class="border border-gray-200 rounded-lg p-5 mb-6 hidden">
                         <h3 class="font-semibold mb-3 text-gray-700">Thanh toán tại khách sạn</h3>
                         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -150,7 +143,6 @@
             </div>
         </div>
 
-        {{-- Tóm tắt đơn hàng --}}
         <div class="lg:col-span-1">
             <div class="bg-white rounded-lg shadow p-6 sticky top-4">
                 <h3 class="font-semibold text-lg mb-4 pb-3 border-b">Tóm tắt đơn hàng</h3>
@@ -178,10 +170,6 @@
                     <div class="flex justify-between">
                         <span class="text-gray-600">Số đêm</span>
                         <span class="font-medium">{{ $booking->number_of_nights }} đêm</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Số khách</span>
-                        <span class="font-medium">{{ $booking->number_of_guests }} người</span>
                     </div>
                 </div>
 
@@ -225,14 +213,7 @@ function showPaymentForm(method) {
     document.getElementById('credit_card_form').classList.add('hidden');
     document.getElementById('bank_transfer_form').classList.add('hidden');
     document.getElementById('cash_form').classList.add('hidden');
-
-    if (method === 'credit_card') {
-        document.getElementById('credit_card_form').classList.remove('hidden');
-    } else if (method === 'bank_transfer') {
-        document.getElementById('bank_transfer_form').classList.remove('hidden');
-    } else if (method === 'cash') {
-        document.getElementById('cash_form').classList.remove('hidden');
-    }
+    document.getElementById(method + '_form').classList.remove('hidden');
 }
 
 function formatCardNumber(input) {
@@ -242,11 +223,10 @@ function formatCardNumber(input) {
 
 function formatExpiry(input) {
     let value = input.value.replace(/\D/g, '').substring(0, 4);
-    if (value.length >= 2) {
-        value = value.substring(0, 2) + '/' + value.substring(2);
-    }
+    if (value.length >= 2) value = value.substring(0, 2) + '/' + value.substring(2);
     input.value = value;
 }
 </script>
 @endpush
+
 @endsection

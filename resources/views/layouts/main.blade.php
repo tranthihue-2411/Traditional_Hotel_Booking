@@ -20,9 +20,9 @@
                     <a href="{{ route('hotels.search') }}" class="text-gray-700 hover:text-teal-600">Khách sạn</a>
                     @auth
                         @if(auth()->user()->is_admin)
-                            <a href="{{ route('admin.dashboard') }}" class="text-teal-600 hover:text-teal-700 font-semibold">Admin Panel</a>
+                            <a href="{{ route('admin.dashboard') }}" class="text-teal-600 hover:text-teal-700 font-semibold">Trang quản trị</a>
                         @endif
-                        <a href="{{ route('bookings.index') }}" class="text-gray-700 hover:text-teal-600">Đặt phòng của tôi</a>
+                        <a href="{{ route('bookings.index') }}" class="text-gray-700 hover:text-teal-600">Lịch sử đặt phòng</a>
                         <a href="{{ route('profile.edit') }}" class="text-gray-700 hover:text-teal-600">Tài khoản</a>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf

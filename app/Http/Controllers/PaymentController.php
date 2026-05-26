@@ -13,11 +13,19 @@ class PaymentController extends Controller
             abort(403);
         }
 
-        if ($booking->status !== 'pending') {
+        if ($booking->status !== 'confirmed') {
             return redirect()->route('bookings.show', $booking)
-                ->with('success', 'Đặt phòng này đã được xử lý rồi.');
+                ->with('error', $booking->status === 'pending'
+                    ? 'Đặt phòng đang chờ khách sạn xác nhận.'
+                    : 'Đặt phòng này không thể thanh toán.');
         }
 
+        if ($booking->is_paid) {
+            return redirect()->route('bookings.show', $booking)
+                ->with('error', 'Đặt phòng này đã được thanh toán rồi.');
+        }
+
+        $booking->load(['hotel', 'room']);
         return view('payment.show', compact('booking'));
     }
 
@@ -27,18 +35,33 @@ class PaymentController extends Controller
             abort(403);
         }
 
-        $validated = $request->validate([
-            'payment_method'  => 'required|in:credit_card,bank_transfer,cash',
-            'card_name'       => 'required_if:payment_method,credit_card|nullable|string',
-            'card_number'     => 'required_if:payment_method,credit_card|nullable|string',
-            'card_expiry'     => 'required_if:payment_method,credit_card|nullable|string',
-            'card_cvv'        => 'required_if:payment_method,credit_card|nullable|string',
+        if ($booking->status !== 'confirmed') {
+            return redirect()->route('bookings.show', $booking)
+                ->with('error', $booking->status === 'pending'
+                    ? 'Đặt phòng đang chờ khách sạn xác nhận.'
+                    : 'Đặt phòng này không thể thanh toán.');
+        }
+
+        if ($booking->is_paid) {
+            return redirect()->route('bookings.show', $booking)
+                ->with('error', 'Đặt phòng này đã được thanh toán rồi.');
+        }
+
+        $request->validate([
+            'payment_method' => 'required|in:credit_card,bank_transfer,cash',
+            'card_name'      => 'required_if:payment_method,credit_card|nullable|string',
+            'card_number'    => 'required_if:payment_method,credit_card|nullable|string',
+            'card_expiry'    => 'required_if:payment_method,credit_card|nullable|string',
+            'card_cvv'       => 'required_if:payment_method,credit_card|nullable|string',
         ]);
 
-        // Mockup: giả lập xử lý thanh toán thành công
-        $booking->update(['status' => 'confirmed']);
+        $booking->update([
+            'is_paid'        => true,
+            'paid_at'        => now(),
+            'payment_method' => $request->payment_method,
+        ]);
 
         return redirect()->route('bookings.show', $booking)
-            ->with('success', '🎉 Thanh toán thành công! Đặt phòng của bạn đã được xác nhận.');
+            ->with('success', '🎉 Thanh toán thành công! Chúc bạn có kỳ nghỉ tuyệt vời.');
     }
 }

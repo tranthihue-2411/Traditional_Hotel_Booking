@@ -13,6 +13,7 @@ class Booking extends Model
         'room_price_per_night', 'subtotal', 'taxes', 'service_fee', 'discount',
         'total_amount', 'guest_name', 'guest_email', 'guest_phone',
         'special_requests', 'status', 'cancelled_at', 'cancellation_reason',
+        'is_paid', 'paid_at', 'payment_method',
     ];
 
     protected $casts = [
@@ -20,6 +21,8 @@ class Booking extends Model
         'check_out_date' => 'date',
         'cancelled_at'   => 'datetime',
         'total_amount'   => 'decimal:2',
+        'is_paid' => 'boolean',
+        'paid_at' => 'datetime',
     ];
 
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
