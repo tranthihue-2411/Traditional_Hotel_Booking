@@ -66,6 +66,13 @@ class RoomController extends Controller
     {
         $room->delete();
         return redirect()->route('admin.hotels.show', $hotel)
-            ->with('success', 'Đã xóa loại phòng thành công!');
+            ->with('success', 'Đã ẩn loại phòng thành công!');
+    }
+
+    public function restore(Hotel $hotel, int $id)
+    {
+        Room::withTrashed()->where('hotel_id', $hotel->id)->findOrFail($id)->restore();
+        return redirect()->route('admin.hotels.show', $hotel)
+            ->with('success', 'Đã khôi phục loại phòng thành công!');
     }
 }

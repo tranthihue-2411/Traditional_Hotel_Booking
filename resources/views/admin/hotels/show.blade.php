@@ -64,7 +64,7 @@
                 <h3 class="font-bold text-gray-800">
                     Danh sách loại phòng
                     <span class="ml-2 text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">
-                        {{ $hotel->rooms->count() }} loại
+                        {{ $rooms->count() }} loại
                     </span>
                 </h3>
                 <a href="{{ route('admin.rooms.create', $hotel) }}"
@@ -73,13 +73,13 @@
                 </a>
             </div>
 
-            @forelse($hotel->rooms as $room)
-            <div class="border border-gray-100 rounded-lg p-4 mb-3 last:mb-0 hover:border-teal-200 transition">
+            @forelse($rooms as $room)
+            <div class="border {{ $room->trashed() ? 'border-gray-200 bg-gray-50 opacity-75' : 'border-gray-100 hover:border-teal-200' }} rounded-lg p-4 mb-3 last:mb-0 transition">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         @if($room->image)
                         <img src="{{ $room->image }}" alt="{{ $room->name }}"
-                             class="w-14 h-10 object-cover rounded flex-shrink-0">
+                             class="w-14 h-10 object-cover rounded flex-shrink-0 {{ $room->trashed() ? 'grayscale' : '' }}">
                         @else
                         <div class="w-14 h-10 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
                             <span class="text-lg">🛏️</span>
@@ -94,9 +94,15 @@
                                 @if($room->size_sqm) · {{ $room->size_sqm }}m² @endif
                             </p>
                             <p class="text-xs mt-1">
-                                <span class="{{ $room->is_active ? 'text-green-600' : 'text-red-500' }}">
-                                    {{ $room->is_active ? '✓ Đang hoạt động' : '✗ Tạm dừng' }}
-                                </span>
+                                @if($room->trashed())
+                                    <span class="text-gray-400 font-medium">
+                                        <i class="fas fa-eye-slash mr-0.5"></i>Đã ẩn
+                                    </span>
+                                @elseif($room->is_active)
+                                    <span class="text-green-600">✓ Đang hoạt động</span>
+                                @else
+                                    <span class="text-red-500">✗ Tạm dừng</span>
+                                @endif
                                 <span class="text-gray-300 mx-1">•</span>
                                 <span class="text-gray-400">{{ $room->total_rooms }} phòng sẵn có</span>
                             </p>
@@ -107,19 +113,30 @@
                             <p class="font-bold text-teal-600 text-sm">{{ number_format($room->price_per_night) }}đ</p>
                             <p class="text-gray-400 text-xs">/đêm</p>
                         </div>
-                        <a href="{{ route('admin.rooms.edit', [$hotel, $room]) }}"
-                            class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-xs hover:bg-yellow-200 font-medium">
-                            Sửa
-                        </a>
-                        <form action="{{ route('admin.rooms.destroy', [$hotel, $room]) }}" method="POST"
-                            onsubmit="return confirm('Bạn chắc muốn xóa loại phòng này?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                class="px-3 py-1.5 bg-red-100 text-red-600 rounded text-xs hover:bg-red-200 font-medium">
-                                Xóa
-                            </button>
-                        </form>
+                        @if($room->trashed())
+                            <form action="{{ route('admin.rooms.restore', [$hotel, $room->id]) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="px-3 py-1.5 bg-green-100 text-green-700 rounded text-xs hover:bg-green-200 font-medium">
+                                    Khôi phục
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('admin.rooms.edit', [$hotel, $room]) }}"
+                                class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-xs hover:bg-yellow-200 font-medium">
+                                Sửa
+                            </a>
+                            <form action="{{ route('admin.rooms.destroy', [$hotel, $room]) }}" method="POST"
+                                onsubmit="return confirm('Bạn chắc muốn ẩn loại phòng này?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="px-3 py-1.5 bg-red-100 text-red-600 rounded text-xs hover:bg-red-200 font-medium">
+                                    Xóa
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -163,7 +180,7 @@
             <div class="space-y-3">
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-500">Tổng loại phòng</span>
-                    <span class="font-semibold">{{ $hotel->rooms->count() }}</span>
+                    <span class="font-semibold">{{ $rooms->whereNull('deleted_at')->count() }}</span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-500">Tổng đặt phòng</span>

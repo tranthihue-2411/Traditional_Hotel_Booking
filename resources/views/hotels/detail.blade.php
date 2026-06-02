@@ -51,8 +51,7 @@
 
                 <div class="space-y-4">
                     @forelse($availableRooms as $room)
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-teal-500 transition cursor-pointer"
-                         onclick="selectRoom({{ $room->id }}, {{ $room->price_per_night }}, '{{ $room->name }}')"
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-teal-500 transition"
                          id="room-{{ $room->id }}">
                         <div class="flex flex-col md:flex-row gap-4">
                             @if($room->image)
@@ -75,8 +74,27 @@
                                     <div>
                                         <span class="text-2xl font-bold text-teal-600">{{ number_format($room->price_per_night) }}đ</span>
                                         <span class="text-gray-500 text-sm">/đêm</span>
-                                        <p class="text-green-600 text-sm mt-1">{{ $room->total_rooms }} phòng có sẵn</p>
+                                        <p class="text-sm mt-1 room-available-count"
+                                           data-room-id="{{ $room->id }}"
+                                           data-initial="{{ $room->availableCount($checkIn, $checkOut) }}">
+                                            {{ $room->availableCount($checkIn, $checkOut) }} phòng có sẵn
+                                        </p>
                                     </div>
+                                    @auth
+                                    <div class="flex items-center gap-2">
+                                        <label class="text-sm text-gray-600">Số lượng:</label>
+                                        <input type="number"
+                                               id="qty-{{ $room->id }}"
+                                               min="0"
+                                               max="{{ $room->availableCount($checkIn, $checkOut) }}"
+                                               value="0"
+                                               data-room-id="{{ $room->id }}"
+                                               data-price="{{ $room->price_per_night }}"
+                                               data-name="{{ $room->name }}"
+                                               class="w-16 border border-gray-300 rounded-lg px-2 py-1 text-center text-sm focus:ring-2 focus:ring-teal-500"
+                                               onchange="updateCart()">
+                                    </div>
+                                    @endauth
                                 </div>
                             </div>
                         </div>
@@ -114,20 +132,12 @@
                 <h2 class="text-2xl font-bold mb-4">Đặt phòng</h2>
 
                 @if($availableRooms->count() > 0)
-                <div class="mb-4">
-                    <div class="text-3xl font-bold text-teal-600 mb-1" id="displayPrice">
-                        {{ number_format($availableRooms->min('price_per_night')) }}đ
-                    </div>
-                    <div class="text-gray-600" id="selectedRoomName">mỗi đêm</div>
-                </div>
-
                 @auth
-                <form action="{{ route('bookings.store') }}" method="POST">
+                <form action="{{ route('bookings.store') }}" method="POST" id="bookingForm">
                     @csrf
                     <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
                     <input type="hidden" name="guest_name" value="{{ auth()->user()->name }}">
                     <input type="hidden" name="guest_email" value="{{ auth()->user()->email }}">
-                    <input type="hidden" name="room_id" id="selectedRoomId" value="{{ $availableRooms->first()->id }}">
 
                     <div class="space-y-4">
                         <div>
@@ -146,7 +156,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Số khách</label>
-                            <input type="number" name="number_of_guests" value="2" min="1" max="10" required
+                            <input type="number" name="number_of_guests" id="numGuests" value="2" min="1" max="20" required
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
                         </div>
                         <div>
@@ -154,27 +164,35 @@
                             <input type="text" name="guest_phone" placeholder="090..."
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
                         </div>
+                    </div>
 
-                        <div class="pt-4 border-t" id="priceBreakdown" style="display:none;">
-                            <div class="flex justify-between mb-2">
-                                <span id="priceLabel">0đ × 1 đêm</span>
+                    {{-- Phòng đã chọn --}}
+                    <div id="cartSummary" class="hidden mt-4 border-t pt-4">
+                        <p class="text-sm font-semibold text-gray-700 mb-2">Phòng đã chọn:</p>
+                        <div id="cartItems" class="space-y-1 text-sm text-gray-600 mb-3"></div>
+                        <div id="hiddenRooms"></div>
+
+                        <div class="pt-3 border-t space-y-1 text-sm">
+                            <div class="flex justify-between text-gray-500">
+                                <span>Tạm tính</span>
                                 <span id="subtotalVal">0đ</span>
                             </div>
-                            <div class="flex justify-between mb-2 text-gray-600">
-                                <span>Thuế và phí (10%)</span>
+                            <div class="flex justify-between text-gray-500">
+                                <span>Thuế (10%)</span>
                                 <span id="taxVal">0đ</span>
                             </div>
-                            <div class="flex justify-between font-bold text-xl pt-2 border-t">
+                            <div class="flex justify-between font-bold text-lg pt-2 border-t">
                                 <span>Tổng cộng</span>
                                 <span id="totalVal" class="text-teal-600">0đ</span>
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 mt-4">
-                        Đặt ngay
+                    <button type="submit" id="bookBtn"
+                            class="w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-semibold mt-4 cursor-not-allowed"
+                            disabled>
+                        Chọn phòng để đặt
                     </button>
-                    <p class="text-center text-gray-400 text-xs mt-2" id="bookHint">Chọn phòng bên trên để tiếp tục</p>
                 </form>
                 @else
                 <a href="{{ route('login') }}" class="block w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 mt-4 text-center">
@@ -192,38 +210,92 @@
 
 @push('scripts')
 <script>
-let selectedPrice = {{ $availableRooms->min('price_per_night') ?? 0 }};
+let ajaxTimer = null;
 
-function selectRoom(roomId, price, name) {
-    document.querySelectorAll('[id^="room-"]').forEach(el => {
-        el.style.borderColor = '';
-        el.style.background = '';
+function updateAvailableCount(checkIn, checkOut) {
+    document.querySelectorAll('.room-available-count').forEach(function(el) {
+        const roomId = el.dataset.roomId;
+        el.textContent = '...';
+        el.className = 'text-gray-400 text-sm mt-1 room-available-count';
+        fetch(`/rooms/${roomId}/available-count?checkin=${checkIn}&checkout=${checkOut}`)
+            .then(r => r.json())
+            .then(data => {
+                el.textContent = data.count + ' phòng có sẵn';
+                el.className = data.count > 0
+                    ? 'text-green-600 text-sm mt-1 room-available-count'
+                    : 'text-red-500 text-sm mt-1 room-available-count';
+                // Cập nhật max của input số lượng
+                const qtyInput = document.getElementById('qty-' + roomId);
+                if (qtyInput) qtyInput.max = data.count;
+            })
+            .catch(() => {
+                el.textContent = el.dataset.initial + ' phòng có sẵn';
+                el.className = 'text-green-600 text-sm mt-1 room-available-count';
+            });
     });
-    document.getElementById('room-' + roomId).style.borderColor = '#0d9488';
-    document.getElementById('room-' + roomId).style.background = '#f0fdfa';
-    document.getElementById('selectedRoomId').value = roomId;
-    selectedPrice = price;
-    document.getElementById('displayPrice').textContent = price.toLocaleString('vi-VN') + 'đ';
-    document.getElementById('selectedRoomName').textContent = name;
-    updatePrice();
 }
 
 function updatePrice() {
-    const checkIn = document.getElementById('checkIn').value;
+    const checkIn  = document.getElementById('checkIn').value;
     const checkOut = document.getElementById('checkOut').value;
-    if (!checkIn || !checkOut || !selectedPrice) return;
+    if (!checkIn || !checkOut) return;
+    const d1 = new Date(checkIn);
+    const d2 = new Date(checkOut);
+    if (d2 <= d1) return;
+    clearTimeout(ajaxTimer);
+    ajaxTimer = setTimeout(() => updateAvailableCount(checkIn, checkOut), 500);
+    updateCart();
+}
 
+function updateCart() {
+    const checkIn  = document.getElementById('checkIn').value;
+    const checkOut = document.getElementById('checkOut').value;
+    if (!checkIn || !checkOut) return;
     const nights = Math.max(1, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000));
-    const subtotal = selectedPrice * nights;
-    const tax = Math.round(subtotal * 0.1) + 15;
+
+    const inputs = document.querySelectorAll('input[id^="qty-"]');
+    let subtotal = 0;
+    let cartHTML = '';
+    let hiddenHTML = '';
+    let roomCount = 0;
+
+    inputs.forEach(input => {
+        const qty = parseInt(input.value) || 0;
+        if (qty > 0) {
+            const price = parseFloat(input.dataset.price);
+            const name  = input.dataset.name;
+            const roomId = input.dataset.roomId;
+            const lineTotal = price * qty * nights;
+            subtotal += lineTotal;
+            cartHTML += `<div class="flex justify-between"><span>${name} × ${qty}</span><span>${lineTotal.toLocaleString('vi-VN')}đ</span></div>`;
+            hiddenHTML += `<input type="hidden" name="rooms[${roomCount}][room_id]" value="${roomId}">`;
+            hiddenHTML += `<input type="hidden" name="rooms[${roomCount}][quantity]" value="${qty}">`;
+            roomCount++;
+        }
+    });
+
+    const tax   = Math.round(subtotal * 0.1) + 15;
     const total = subtotal + tax;
 
-    document.getElementById('priceLabel').textContent = selectedPrice.toLocaleString('vi-VN') + 'đ × ' + nights + ' đêm';
-    document.getElementById('subtotalVal').textContent = subtotal.toLocaleString('vi-VN') + 'đ';
-    document.getElementById('taxVal').textContent = tax.toLocaleString('vi-VN') + 'đ';
-    document.getElementById('totalVal').textContent = total.toLocaleString('vi-VN') + 'đ';
-    document.getElementById('priceBreakdown').style.display = 'block';
-    document.getElementById('bookHint').textContent = '';
+    const cartSummary = document.getElementById('cartSummary');
+    const bookBtn = document.getElementById('bookBtn');
+
+    if (roomCount > 0) {
+        document.getElementById('cartItems').innerHTML = cartHTML;
+        document.getElementById('hiddenRooms').innerHTML = hiddenHTML;
+        document.getElementById('subtotalVal').textContent = subtotal.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('taxVal').textContent = tax.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('totalVal').textContent = total.toLocaleString('vi-VN') + 'đ';
+        cartSummary.classList.remove('hidden');
+        bookBtn.disabled = false;
+        bookBtn.className = 'w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 mt-4 cursor-pointer';
+        bookBtn.textContent = `Đặt phòng — ${total.toLocaleString('vi-VN')}đ`;
+    } else {
+        cartSummary.classList.add('hidden');
+        bookBtn.disabled = true;
+        bookBtn.className = 'w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-semibold mt-4 cursor-not-allowed';
+        bookBtn.textContent = 'Chọn phòng để đặt';
+    }
 }
 </script>
 @endpush

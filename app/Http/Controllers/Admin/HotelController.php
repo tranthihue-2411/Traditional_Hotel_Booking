@@ -10,7 +10,7 @@ class HotelController extends Controller
 {
     public function index()
     {
-        $hotels = Hotel::with('user')->latest()->paginate(15);
+        $hotels = Hotel::withTrashed()->with('user')->latest()->paginate(15);
         return view('admin.hotels.index', compact('hotels'));
     }
 
@@ -50,8 +50,9 @@ class HotelController extends Controller
 
     public function show(Hotel $hotel)
     {
-        $hotel->load(['rooms', 'amenities', 'reviews', 'bookings']);
-        return view('admin.hotels.show', compact('hotel'));
+        $hotel->load(['amenities', 'reviews', 'bookings']);
+        $rooms = $hotel->rooms()->withTrashed()->get();
+        return view('admin.hotels.show', compact('hotel', 'rooms'));
     }
 
     public function edit(Hotel $hotel)
@@ -94,6 +95,12 @@ class HotelController extends Controller
     public function destroy(Hotel $hotel)
     {
         $hotel->delete();
-        return redirect()->route('admin.hotels.index')->with('success', 'Đã xóa khách sạn thành công!');
+        return redirect()->route('admin.hotels.index')->with('success', 'Đã ẩn khách sạn thành công!');
+    }
+
+    public function restore(int $id)
+    {
+        Hotel::withTrashed()->findOrFail($id)->restore();
+        return redirect()->route('admin.hotels.index')->with('success', 'Đã khôi phục khách sạn thành công!');
     }
 }

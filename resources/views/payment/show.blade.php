@@ -5,9 +5,14 @@
 <div class="container mx-auto px-4 py-8 max-w-4xl">
     <h1 class="text-3xl font-bold mb-6">Thanh Toán</h1>
 
-    @if(session('info'))
-    <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
-        {{ session('info') }}
+    @if($booking->payment_deadline)
+    <div class="bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-lg mb-4 flex items-center gap-3">
+        <span class="text-xl">⏰</span>
+        <div>
+            <p class="font-semibold">Thời hạn thanh toán</p>
+            <p class="text-sm">Vui lòng hoàn tất trước <strong>{{ $booking->payment_deadline->format('H:i d/m/Y') }}</strong>
+            — còn lại <span id="countdown" class="font-bold text-red-600"></span></p>
+        </div>
     </div>
     @endif
 
@@ -51,17 +56,19 @@
                             </div>
                         </label>
 
+                        @if(auth()->user()->is_admin)
                         <label class="flex items-center gap-3 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-teal-500 transition">
                             <input type="radio" name="payment_method" value="cash"
                                    class="text-teal-600" onchange="showPaymentForm(this.value)">
                             <div class="flex items-center gap-3">
                                 <span class="text-2xl">💵</span>
                                 <div>
-                                    <p class="font-semibold">Thanh toán tại khách sạn</p>
-                                    <p class="text-sm text-gray-500">Trả tiền mặt khi nhận phòng</p>
+                                    <p class="font-semibold">Tiền mặt tại quầy</p>
+                                    <p class="text-sm text-gray-500">Thu tiền mặt trực tiếp</p>
                                 </div>
                             </div>
                         </label>
+                        @endif
                     </div>
 
                     <div id="credit_card_form" class="border border-gray-200 rounded-lg p-5 mb-6">
@@ -75,23 +82,20 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Số thẻ</label>
-                                <input type="text" name="card_number"
-                                       placeholder="1234 5678 9012 3456" maxlength="19"
+                                <input type="text" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono"
                                        oninput="formatCardNumber(this)">
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Ngày hết hạn</label>
-                                    <input type="text" name="card_expiry"
-                                           placeholder="MM/YY" maxlength="5"
+                                    <input type="text" name="card_expiry" placeholder="MM/YY" maxlength="5"
                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono"
                                            oninput="formatExpiry(this)">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">CVV</label>
-                                    <input type="text" name="card_cvv"
-                                           placeholder="123" maxlength="3"
+                                    <input type="text" name="card_cvv" placeholder="123" maxlength="3"
                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono">
                                 </div>
                             </div>
@@ -102,36 +106,11 @@
                     <div id="bank_transfer_form" class="border border-gray-200 rounded-lg p-5 mb-6 hidden">
                         <h3 class="font-semibold mb-4 text-gray-700">Thông tin chuyển khoản</h3>
                         <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Ngân hàng:</span>
-                                <span class="font-semibold">Vietcombank</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Số tài khoản:</span>
-                                <span class="font-semibold font-mono">1234 5678 9012</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Chủ tài khoản:</span>
-                                <span class="font-semibold">CONG TY HOTELHUB</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Nội dung CK:</span>
-                                <span class="font-semibold text-teal-600">{{ $booking->booking_reference }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Số tiền:</span>
-                                <span class="font-semibold text-teal-600">{{ number_format($booking->total_amount) }}đ</span>
-                            </div>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-3">⚠️ Vui lòng chuyển khoản đúng nội dung để hệ thống tự động xác nhận.</p>
-                    </div>
-
-                    <div id="cash_form" class="border border-gray-200 rounded-lg p-5 mb-6 hidden">
-                        <h3 class="font-semibold mb-3 text-gray-700">Thanh toán tại khách sạn</h3>
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <p class="text-yellow-800 text-sm">
-                                ⚠️ Đặt phòng sẽ được giữ trong <strong>24 giờ</strong>. Vui lòng đến khách sạn và thanh toán khi nhận phòng.
-                            </p>
+                            <div class="flex justify-between"><span class="text-gray-600">Ngân hàng:</span><span class="font-semibold">Vietcombank</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Số tài khoản:</span><span class="font-semibold font-mono">1234 5678 9012</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Chủ tài khoản:</span><span class="font-semibold">CONG TY HOTELHUB</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Nội dung CK:</span><span class="font-semibold text-teal-600">{{ $booking->booking_reference }}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Số tiền:</span><span class="font-semibold text-teal-600">{{ number_format($booking->total_amount) }}đ</span></div>
                         </div>
                     </div>
 
@@ -156,10 +135,6 @@
 
                 <div class="space-y-2 text-sm mb-4 pb-4 border-b">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Phòng</span>
-                        <span class="font-medium">{{ $booking->room->name }}</span>
-                    </div>
-                    <div class="flex justify-between">
                         <span class="text-gray-600">Nhận phòng</span>
                         <span class="font-medium">{{ $booking->check_in_date->format('d/m/Y') }}</span>
                     </div>
@@ -169,15 +144,21 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">Số đêm</span>
-                        <span class="font-medium">{{ $booking->number_of_nights }} đêm</span>
+                        <span class="font-medium">{{ $booking->details->first()?->number_of_nights ?? 0 }} đêm</span>
                     </div>
                 </div>
 
-                <div class="space-y-2 text-sm mb-4">
+                {{-- Chi tiết phòng --}}
+                <div class="space-y-2 text-sm mb-4 pb-4 border-b">
+                    @foreach($booking->details as $detail)
                     <div class="flex justify-between">
-                        <span class="text-gray-600">{{ number_format($booking->room_price_per_night) }}đ × {{ $booking->number_of_nights }} đêm</span>
-                        <span>{{ number_format($booking->subtotal) }}đ</span>
+                        <span class="text-gray-600">{{ $detail->room_name }} × {{ $detail->quantity }}</span>
+                        <span>{{ number_format($detail->subtotal) }}đ</span>
                     </div>
+                    @endforeach
+                </div>
+
+                <div class="space-y-2 text-sm mb-4">
                     <div class="flex justify-between text-gray-500">
                         <span>Thuế (10%)</span>
                         <span>{{ number_format($booking->taxes) }}đ</span>
@@ -192,15 +173,6 @@
                     <span>Tổng cộng</span>
                     <span class="text-teal-600">{{ number_format($booking->total_amount) }}đ</span>
                 </div>
-
-                <div class="mt-4 space-y-2">
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
-                        🔒 <span>Thanh toán an toàn & bảo mật</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
-                        🔄 <span>Hủy miễn phí trước ngày nhận phòng</span>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -210,10 +182,11 @@
 @push('scripts')
 <script>
 function showPaymentForm(method) {
-    document.getElementById('credit_card_form').classList.add('hidden');
-    document.getElementById('bank_transfer_form').classList.add('hidden');
-    document.getElementById('cash_form').classList.add('hidden');
-    document.getElementById(method + '_form').classList.remove('hidden');
+    ['credit_card_form', 'bank_transfer_form'].forEach(id => {
+        document.getElementById(id)?.classList.add('hidden');
+    });
+    const el = document.getElementById(method + '_form');
+    if (el) el.classList.remove('hidden');
 }
 
 function formatCardNumber(input) {
@@ -226,6 +199,24 @@ function formatExpiry(input) {
     if (value.length >= 2) value = value.substring(0, 2) + '/' + value.substring(2);
     input.value = value;
 }
+
+@if($booking->payment_deadline)
+(function() {
+    const deadline = new Date('{{ $booking->payment_deadline->toIso8601String() }}');
+    const el = document.getElementById('countdown');
+    if (!el) return;
+    function tick() {
+        const diff = Math.max(0, Math.floor((deadline - Date.now()) / 1000));
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        el.textContent = h + ' giờ ' + String(m).padStart(2,'0') + ' phút ' + String(s).padStart(2,'0') + ' giây';
+        if (diff > 0) setTimeout(tick, 1000);
+        else el.textContent = 'Đã hết hạn';
+    }
+    tick();
+})();
+@endif
 </script>
 @endpush
 

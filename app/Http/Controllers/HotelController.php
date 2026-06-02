@@ -91,4 +91,18 @@ class HotelController extends Controller
 
         return view('hotels.detail', compact('hotel', 'availableRooms', 'checkIn', 'checkOut'));
     }
+
+    public function roomAvailableCount(Room $room, Request $request)
+    {
+        $checkIn  = $request->checkin;
+        $checkOut = $request->checkout;
+
+        if (!$checkIn || !$checkOut) {
+            return response()->json(['count' => $room->total_rooms]);
+        }
+
+        return response()->json([
+            'count' => $room->availableCount($checkIn, $checkOut)
+        ]);
+    }
 }

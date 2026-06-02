@@ -13,9 +13,7 @@ $statusLabels = [
 @endphp
 
 <div class="container mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold">Lịch sử đặt phòng</h1>
-    </div>
+    <h1 class="text-3xl font-bold mb-6">Lịch sử đặt phòng</h1>
 
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <form action="{{ route('bookings.index') }}" method="GET" class="flex gap-3">
@@ -30,15 +28,9 @@ $statusLabels = [
                 <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>🏁 Hoàn thành</option>
                 <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>❌ Đã hủy</option>
             </select>
-            <button type="submit"
-                    class="bg-teal-600 text-white px-5 py-2 rounded-lg hover:bg-teal-700 text-sm font-semibold">
-                Tìm
-            </button>
+            <button type="submit" class="bg-teal-600 text-white px-5 py-2 rounded-lg hover:bg-teal-700 text-sm font-semibold">Tìm</button>
             @if(request('search') || request('status'))
-            <a href="{{ route('bookings.index') }}"
-               class="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 text-sm font-semibold">
-                Xóa lọc
-            </a>
+            <a href="{{ route('bookings.index') }}" class="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 text-sm font-semibold">Xóa lọc</a>
             @endif
         </form>
     </div>
@@ -54,7 +46,9 @@ $statusLabels = [
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h3 class="text-xl font-semibold text-gray-800">{{ $booking->hotel->name }}</h3>
-                        <p class="text-gray-500 text-sm">🛏️ {{ $booking->room->name }}</p>
+                        <p class="text-gray-500 text-sm">
+                            🛏️ {{ $booking->details->map(fn($d) => $d->room_name . ($d->quantity > 1 ? " ×{$d->quantity}" : ''))->join(', ') }}
+                        </p>
                         <p class="text-gray-400 text-xs mt-0.5"># {{ $booking->booking_reference }}</p>
                     </div>
                     <span class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap {{ $s['class'] }}">
@@ -69,7 +63,7 @@ $statusLabels = [
                     </div>
                     <div class="text-center">
                         <p class="text-gray-500 text-xs">Số đêm</p>
-                        <p class="font-semibold text-sm">{{ $booking->number_of_nights }} đêm</p>
+                        <p class="font-semibold text-sm">{{ $booking->details->first()?->number_of_nights ?? 0 }} đêm</p>
                     </div>
                     <div class="text-right">
                         <p class="text-gray-500 text-xs">Trả phòng</p>
@@ -84,33 +78,22 @@ $statusLabels = [
                     </div>
                     <div class="flex gap-2 flex-wrap">
                         <a href="{{ route('bookings.show', $booking) }}"
-                           class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-semibold">
-                            Chi tiết
-                        </a>
+                           class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-semibold">Chi tiết</a>
 
                         @if($booking->status === 'confirmed' && !$booking->is_paid)
                         <a href="{{ route('payment.show', $booking) }}"
-                           class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold">
-                            💳 Thanh toán
-                        </a>
+                           class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold">💳 Thanh toán</a>
                         @elseif($booking->status === 'confirmed' && $booking->is_paid)
-                        <span class="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-semibold">
-                            ✅ Đã thanh toán
-                        </span>
+                        <span class="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-semibold">✅ Đã thanh toán</span>
                         @elseif($booking->status === 'pending')
-                        <span class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-semibold">
-                            ⏳ Chờ duyệt
-                        </span>
+                        <span class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-semibold">⏳ Chờ duyệt</span>
                         @endif
 
                         @if($booking->status !== 'cancelled' && $booking->status !== 'completed')
                         <form action="{{ route('bookings.cancel', $booking) }}" method="POST"
                               onsubmit="return confirm('Bạn có chắc muốn hủy?')">
                             @csrf
-                            <button type="submit"
-                                    class="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm font-semibold">
-                                Hủy
-                            </button>
+                            <button type="submit" class="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm font-semibold">Hủy</button>
                         </form>
                         @endif
                     </div>
@@ -122,10 +105,7 @@ $statusLabels = [
     <div class="bg-white p-12 rounded-lg shadow text-center">
         <div class="text-6xl mb-4">📋</div>
         <p class="text-xl text-gray-600 mb-4">Bạn chưa có đặt phòng nào</p>
-        <a href="{{ route('hotels.search') }}"
-           class="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 inline-block">
-            Tìm khách sạn
-        </a>
+        <a href="{{ route('hotels.search') }}" class="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 inline-block">Tìm khách sạn</a>
     </div>
     @endforelse
 

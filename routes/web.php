@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\RoomController;
 Route::get('/', [HotelController::class, 'index'])->name('home');
 Route::get('/search', [HotelController::class, 'search'])->name('hotels.search');
 Route::get('/hotels/{hotel}', [HotelController::class, 'show'])->name('hotels.show');
+Route::get('/rooms/{room}/available-count', [HotelController::class, 'roomAvailableCount'])->name('rooms.available-count');
 
 // Auth routes (Breeze)
 require __DIR__.'/auth.php';
@@ -48,6 +49,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
     Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.update-status');
+    Route::patch('/bookings/{booking}/confirm-refund', [AdminBookingController::class, 'confirmRefund'])->name('bookings.confirm-refund');
 
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');

@@ -16,12 +16,12 @@ return new class extends Migration
             $table->string('booking_reference', 20)->unique();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('hotel_id')->constrained('hotels')->cascadeOnDelete();
-            $table->foreignId('room_id')->constrained('rooms')->cascadeOnDelete();
+           
             $table->date('check_in_date');
             $table->date('check_out_date');
             $table->unsignedInteger('number_of_guests');
-            $table->unsignedInteger('number_of_nights');
-            $table->decimal('room_price_per_night', 10, 2);
+            
+           
             $table->decimal('subtotal', 10, 2);
             $table->decimal('taxes', 10, 2)->default(0);
             $table->decimal('service_fee', 10, 2)->default(0);

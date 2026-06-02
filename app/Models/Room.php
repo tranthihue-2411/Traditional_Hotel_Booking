@@ -1,12 +1,16 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Room extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'hotel_id', 'name', 'description', 'room_type', 'max_guests',
         'size_sqm', 'bed_type', 'price_per_night', 'total_rooms',
@@ -24,9 +28,9 @@ class Room extends Model
         return $this->belongsTo(Hotel::class);
     }
 
-    public function bookings(): HasMany
+    public function bookingDetails(): HasMany
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(BookingDetail::class);
     }
 
     public function scopeActive($query)
@@ -36,18 +40,25 @@ class Room extends Model
 
     public function isAvailable(string $checkIn, string $checkOut): bool
     {
-        $bookedCount = $this->bookings()
-            ->where('status', '!=', 'cancelled')
-            ->where(function ($query) use ($checkIn, $checkOut) {
-                $query->whereBetween('check_in_date', [$checkIn, $checkOut])
-                      ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
-                      ->orWhere(function ($q) use ($checkIn, $checkOut) {
-                          $q->where('check_in_date', '<=', $checkIn)
-                            ->where('check_out_date', '>=', $checkOut);
-                      });
-            })
-            ->count();
+        return $this->availableCount($checkIn, $checkOut) > 0;
+    }
 
-        return $bookedCount < $this->total_rooms;
+    public function availableCount(string $checkIn, string $checkOut): int
+    {
+        $bookedCount = BookingDetail::where('room_id', $this->id)
+            ->whereHas('booking', function ($q) use ($checkIn, $checkOut) {
+                $q->whereNotIn('status', ['cancelled', 'completed'])
+                  ->where(function ($q2) use ($checkIn, $checkOut) {
+                      $q2->whereBetween('check_in_date', [$checkIn, $checkOut])
+                         ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
+                         ->orWhere(function ($q3) use ($checkIn, $checkOut) {
+                             $q3->where('check_in_date', '<=', $checkIn)
+                                ->where('check_out_date', '>=', $checkOut);
+                         });
+                  });
+            })
+            ->sum('quantity');
+
+        return max(0, $this->total_rooms - $bookedCount);
     }
 }

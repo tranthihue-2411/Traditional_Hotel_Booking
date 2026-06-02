@@ -5,13 +5,10 @@
 <div class="container mx-auto px-4 py-16 max-w-2xl">
 
     @if(session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-        {{ session('success') }}
-    </div>
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">{{ session('success') }}</div>
     @endif
 
     <div class="bg-white rounded-lg shadow overflow-hidden">
-
         <div class="bg-yellow-500 px-6 py-8 text-center">
             <div class="text-6xl mb-4">⏳</div>
             <h1 class="text-2xl font-bold text-white mb-2">Đang chờ xác nhận</h1>
@@ -19,7 +16,6 @@
         </div>
 
         <div class="p-6">
-
             <div class="bg-gray-50 rounded-lg p-5 mb-6 border border-gray-200">
                 <div class="flex items-center gap-4 mb-4 pb-4 border-b border-gray-200">
                     <img src="{{ $booking->hotel->main_image ?? 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop' }}"
@@ -27,10 +23,21 @@
                         class="w-16 h-12 object-cover rounded-lg flex-shrink-0">
                     <div>
                         <p class="font-bold text-gray-800">{{ $booking->hotel->name }}</p>
-                        <p class="text-gray-500 text-sm">{{ $booking->room->name }}</p>
                         <p class="text-yellow-600 text-xs font-semibold mt-0.5">Mã: {{ $booking->booking_reference }}</p>
                     </div>
                 </div>
+
+                {{-- Danh sách phòng --}}
+                <div class="mb-4 pb-4 border-b border-gray-200">
+                    <p class="text-gray-500 text-xs mb-2 font-semibold uppercase">Phòng đã đặt</p>
+                    @foreach($booking->details as $detail)
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-700">{{ $detail->room_name }} × {{ $detail->quantity }}</span>
+                        <span class="font-semibold text-teal-600">{{ number_format($detail->subtotal) }}đ</span>
+                    </div>
+                    @endforeach
+                </div>
+
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <p class="text-gray-500 text-xs mb-0.5">Nhận phòng</p>
@@ -42,7 +49,7 @@
                     </div>
                     <div>
                         <p class="text-gray-500 text-xs mb-0.5">Số đêm</p>
-                        <p class="font-semibold text-gray-700">{{ $booking->number_of_nights }} đêm</p>
+                        <p class="font-semibold text-gray-700">{{ $booking->details->first()?->number_of_nights ?? 0 }} đêm</p>
                     </div>
                     <div>
                         <p class="text-gray-500 text-xs mb-0.5">Tổng tiền</p>
@@ -85,16 +92,6 @@
                 </div>
             </div>
 
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <p class="text-blue-700 text-sm font-semibold mb-2">ℹ️ Lưu ý</p>
-                <ul class="text-blue-600 text-xs space-y-1">
-                    <li>• Khách sạn sẽ xác nhận trong vòng 2-4 giờ làm việc</li>
-                    <li>• Sau khi xác nhận bạn mới có thể tiến hành thanh toán</li>
-                    <li>• Bạn có thể hủy đặt phòng trước khi được xác nhận</li>
-                    <li>• Kiểm tra trạng thái tại mục "Lịch sử đặt phòng"</li>
-                </ul>
-            </div>
-
             <div class="flex gap-3">
                 <a href="{{ route('bookings.show', $booking) }}"
                     class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg text-sm font-semibold text-center">
@@ -105,7 +102,6 @@
                     Lịch sử đặt phòng
                 </a>
             </div>
-
         </div>
     </div>
 </div>

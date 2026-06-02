@@ -2,6 +2,7 @@
 namespace Database\Seeders;
 
 use App\Models\Booking;
+use App\Models\BookingDetail;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -39,26 +40,34 @@ class BookingSeeder extends Seeder
             $serviceFee = $subtotal * 0.05;
             $total      = $subtotal + $taxes + $serviceFee;
 
-            Booking::create([
-                'booking_reference'    => 'BK-' . date('Y') . '-' . strtoupper(substr(uniqid(), -6)),
-                'user_id'              => $customer->id,
-                'hotel_id'             => $room->hotel->id,
-                'room_id'              => $room->id,
-                'check_in_date'        => $checkIn,
-                'check_out_date'       => $checkOut,
-                'number_of_guests'     => rand(1, $room->max_guests),
-                'number_of_nights'     => $nights,
-                'room_price_per_night' => $room->price_per_night,
-                'subtotal'             => $subtotal,
-                'taxes'                => $taxes,
-                'service_fee'          => $serviceFee,
-                'discount'             => 0,
-                'total_amount'         => $total,
-                'guest_name'           => $customer->name,
-                'guest_email'          => $customer->email,
-                'guest_phone'          => '090' . rand(1000000, 9999999),
-                'status'               => $data['status'],
-                'cancelled_at'         => $data['status'] === 'cancelled' ? now() : null,
+            $booking = Booking::create([
+                'booking_reference' => 'BK-' . date('Y') . '-' . strtoupper(substr(uniqid(), -6)),
+                'user_id'           => $customer->id,
+                'hotel_id'          => $room->hotel->id,
+                'check_in_date'     => $checkIn,
+                'check_out_date'    => $checkOut,
+                'number_of_guests'  => rand(1, $room->max_guests),
+                'subtotal'          => $subtotal,
+                'taxes'             => $taxes,
+                'service_fee'       => $serviceFee,
+                'discount'          => 0,
+                'total_amount'      => $total,
+                'guest_name'        => $customer->name,
+                'guest_email'       => $customer->email,
+                'guest_phone'       => '090' . rand(1000000, 9999999),
+                'status'            => $data['status'],
+                'cancelled_at'      => $data['status'] === 'cancelled' ? now() : null,
+            ]);
+
+            BookingDetail::create([
+                'booking_id'       => $booking->id,
+                'room_id'          => $room->id,
+                'room_name'        => $room->name,
+                'room_type'        => $room->room_type,
+                'price_per_night'  => $room->price_per_night,
+                'quantity'         => 1,
+                'number_of_nights' => $nights,
+                'subtotal'         => $subtotal,
             ]);
         }
     }

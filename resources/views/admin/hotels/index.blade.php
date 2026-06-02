@@ -49,31 +49,50 @@
                     </div>
                 </td>
                 <td class="px-6 py-4">
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold
-                        {{ $hotel->is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100' }}">
-                        <i class="fas fa-circle text-xs mr-1"></i>
-                        {{ $hotel->is_active ? 'Hoạt động' : 'Tạm dừng' }}
-                    </span>
+                    @if($hotel->trashed())
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                            <i class="fas fa-eye-slash text-xs mr-1"></i>Đã ẩn
+                        </span>
+                    @elseif($hotel->is_active)
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
+                            <i class="fas fa-circle text-xs mr-1"></i>Hoạt động
+                        </span>
+                    @else
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-500 border border-red-100">
+                            <i class="fas fa-circle text-xs mr-1"></i>Tạm dừng
+                        </span>
+                    @endif
                 </td>
                 <td class="px-6 py-4">
                     <div class="flex items-center justify-end gap-2">
-                        <a href="{{ route('admin.hotels.show', $hotel) }}"
-                            class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200">
-                            Xem
-                        </a>
-                        <a href="{{ route('admin.hotels.edit', $hotel) }}"
-                            class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200">
-                            Sửa
-                        </a>
-                        <form action="{{ route('admin.hotels.destroy', $hotel) }}" method="POST"
-                            onsubmit="return confirm('Bạn có chắc muốn xóa khách sạn này?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                class="px-3 py-1 bg-red-100 text-red-600 rounded text-sm hover:bg-red-200">
-                                Xóa
-                            </button>
-                        </form>
+                        @if($hotel->trashed())
+                            <form action="{{ route('admin.hotels.restore', $hotel->id) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200">
+                                    Khôi phục
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('admin.hotels.show', $hotel) }}"
+                                class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200">
+                                Xem
+                            </a>
+                            <a href="{{ route('admin.hotels.edit', $hotel) }}"
+                                class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200">
+                                Sửa
+                            </a>
+                            <form action="{{ route('admin.hotels.destroy', $hotel) }}" method="POST"
+                                onsubmit="return confirm('Bạn có chắc muốn ẩn khách sạn này?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="px-3 py-1 bg-red-100 text-red-600 rounded text-sm hover:bg-red-200">
+                                    Xóa
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </td>
             </tr>

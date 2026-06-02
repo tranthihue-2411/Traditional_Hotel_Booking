@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -9,7 +10,7 @@ class BookingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Booking::with(['hotel', 'room', 'user'])->latest();
+        $query = Booking::with(['hotel', 'details.room', 'user'])->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -29,25 +30,53 @@ class BookingController extends Controller
 
     public function show(Booking $booking)
     {
-        $booking->load(['hotel', 'room', 'user']);
+        $booking->load(['hotel', 'details.room', 'user']);
         return view('admin.bookings.show', compact('booking'));
     }
 
     public function updateStatus(Request $request, Booking $booking)
     {
-        $validated = $request->validate([
-            'status' => 'required|in:pending,confirmed,cancelled,completed',
-        ]);
-
-        $booking->update(['status' => $validated['status']]);
-
-        if ($validated['status'] === 'cancelled') {
-            $booking->update([
-                'cancelled_at'        => now(),
-                'cancellation_reason' => $request->reason ?? 'Cancelled by admin',
-            ]);
+        if (in_array($booking->status, ['completed', 'cancelled'])) {
+            return back()->withErrors(['status' => 'Không thể thay đổi trạng thái đặt phòng đã hoàn thành hoặc đã hủy.']);
         }
 
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,cancelled,completed',
+            'reason' => 'required_if:status,cancelled|nullable|string|max:500',
+        ]);
+
+        $newStatus = $request->status;
+        $updates   = ['status' => $newStatus];
+
+        if ($newStatus === 'confirmed' && !$booking->payment_deadline) {
+            $deadline = $booking->check_in_date->subDay();
+            $updates['payment_deadline'] = $deadline->isPast()
+                ? now()->addHours(2)
+                : $deadline;
+        }
+
+        if ($newStatus === 'cancelled') {
+            $updates['cancelled_at']        = now();
+            $updates['cancellation_reason'] = $request->reason;
+            if ($booking->is_paid) {
+                // Admin tự chọn có hoàn tiền hay không
+                $updates['refund_status'] = $request->boolean('refund') ? 'pending' : 'none';
+            }
+        }
+
+        $booking->update($updates);
+
         return back()->with('success', 'Đã cập nhật trạng thái đặt phòng!');
+    }
+
+    public function confirmRefund(Booking $booking)
+    {
+        if ($booking->refund_status !== 'pending') {
+            return back()->withErrors(['refund' => 'Không thể xác nhận hoàn tiền.']);
+        }
+
+        $booking->update(['refund_status' => 'completed']);
+
+        return back()->with('success', 'Đã xác nhận hoàn tiền cho khách!');
     }
 }
